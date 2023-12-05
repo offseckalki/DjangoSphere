@@ -1,3 +1,4 @@
+![bg.jpeg]
 # Django Chat Room Web Application: Connect in Real Time
 
 Welcome to our Django Chat Room Web Application, developed as part of our College Minor Project, where real-time communication meets seamless user interaction. Built on the robust Django framework with the added power of Django Channels, this application brings users together in dynamic chat rooms.
