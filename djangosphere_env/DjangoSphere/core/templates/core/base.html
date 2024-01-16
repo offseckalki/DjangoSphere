@@ -1,22 +1,44 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %}Django Sphere</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
 
-        <title>{% block title %}{% endblock %}Django Sphere</title>
-        <script src="https://cdn.tailwindcss.com"></script>
+        .sticky-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #4c51bf; /* Adjust the background color as needed */
+            padding: 1rem;
+            z-index: 1000; /* Adjust the z-index as needed */
+        }
 
-        <style>
-            .chat-messages{
-                height:400px;
-                overflow-y: auto;
-            }
-        </style>
-    </head>
+        .content-container {
+            margin-top: 70px; /* Adjust the margin based on your header height */
+            padding: 20px;
+        }
 
-    <body class="bg-purple-700">
-    <nav class="flex items-center justify-between px-4 py-6 bg-violet-900">
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+        }
+
+        /* Add more styles as needed */
+    </style>
+</head>
+
+<body class="bg-purple-700">
+    <nav class="sticky-header flex items-center justify-between px-4 py-6 bg-violet-900">
         <div>
             <a href="/" class="text=xl text-white">Django Sphere</a>
         </div>
@@ -25,17 +47,18 @@
                 <a href="/rooms" class="text-white hover:text-purple-200">Rooms</a>
                 <a href="/logout/" class="px-5 py-3 rounded-xl text-white bg-purple-600 hover:text-purple-900 hover:bg-purple-400">Log out</a>
             {% else %}
-            <a href="/login/" class="text-white hover:text-purple-200">Log in</a>
-            <a href="/signup/" class="px-5 py-3 rounded-xl text-white bg-purple-600 hover:text-purple-900 hover:bg-purple-400">Sign up</a>
+                <a href="/login/" class="text-white hover:text-purple-200">Log in</a>
+                <a href="/signup/" class="px-5 py-3 rounded-xl text-white bg-purple-600 hover:text-purple-900 hover:bg-purple-400">Sign up</a>
             {% endif %}
         </div>
     </nav>
 
-    {% block content %}
-    {% endblock %}
+    <div class="content-container">
+        {% block content %}
+        {% endblock %}
+    </div>
 
     {% block scripts %}
     {% endblock %}
-    </body>
-
+</body>
 </html>
