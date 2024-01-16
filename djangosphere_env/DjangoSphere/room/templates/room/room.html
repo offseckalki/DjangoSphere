@@ -1,4 +1,4 @@
-{% extends 'core/base.html'%}
+{% extends 'core/base.html' %}
 
 {% block title %} {{ room.name }} | {% endblock %}
 
@@ -11,15 +11,20 @@
     <div class="chat-messages space-y-3" id="chat-messages">
         {% for message in messages %}
             <div class="p-4 bg-zinc-400 rounded-xl">
-                <p class="font-semibold">{{ message.user.username }} - {{ message.timestamp}}</p>
+                <p class="font-semibold">{{ message.user.username }} - {{ message.timestamp }}</p>
                 <p>{{ message.content }}</p>
+                
+                {% if message.user == request.user %}
+                    <button class="px-1 py-1 rounded-xl delete-button bg-red-400 font-semibold text-black hover:bg-red-600 hover:text-white" data-message-id="{{ message.id }}">Delete</button>
+                {% endif %}
             </div>
         {% endfor %}     
     </div>
 </div>
 
 <div class="lg:w-2/4 mt-6 mx-4 lg:mx-auto p-4 bg-white rounded-xl">
-    <form method="post" action="." class="flex">
+    <form id="chat-form" class="flex">
+        {% csrf_token %}
         <input type="text" name="content" class="flex-1 mr-3" placeholder="Message..." id="chat-message-input">
         <button class="px-5 py-3 rounded-xl text-white bg-purple-500 hover:bg-green-500" id="chat-message-submit">Submit</button>
     </form>
@@ -29,62 +34,73 @@
 
 {% block scripts %}
 {{ room.slug|json_script:"json-roomname" }}
-{{ request.user.username|json_script:"json-username"}}
+{{ request.user.username|json_script:"json-username" }}
 <script>
     const roomName = JSON.parse(document.getElementById('json-roomname').textContent);
     const userName = JSON.parse(document.getElementById('json-username').textContent);
-    const chatSocket = new WebSocket(
-    'ws://' + window.location.host + '/ws/' + roomName + '/'
-);
+    const chatSocket = new WebSocket('ws://' + window.location.host + '/ws/' + roomName + '/');
 
-chatSocket.onmessage = function(e) {
-    console.log('onmessage');
-    const data = JSON.parse(e.data);
+    chatSocket.onmessage = function (e) {
+        console.log('onmessage');
+        const data = JSON.parse(e.data);
 
-    if (data.message) {
-        // Parse the ISO 8601 timestamp on the client side
-        const serverTimestamp = new Date(data.timestamp);
-        const localTimestamp = serverTimestamp.toLocaleString(); // Convert server timestamp to local time
-        let html = '<div class="p-4 bg-zinc-400 rounded-xl">';
-        html += '<p class="font-semibold">' + data.username + ' - ' + localTimestamp + '</p>';
-        html += '<p>' + data.message + '</p></div>';
+        if (data.message) {
+            // Parse the ISO 8601 timestamp on the client side
+            const serverTimestamp = new Date(data.timestamp);
+            const localTimestamp = serverTimestamp.toLocaleString(); // Convert server timestamp to local time
+            let html = '<div class="p-4 bg-zinc-400 rounded-xl">';
+            html += '<p class="font-semibold">' + data.username + ' - ' + localTimestamp + '</p>';
+            html += '<p>' + data.message + '</p>';
+            
+          
+            
+            html += '</div>';
+            document.querySelector('#chat-messages').innerHTML += html;
+            scrollToBottom();
+        } else {
+            alert('The Message Was empty!');
+        }
+    };
 
-        document.querySelector('#chat-messages').innerHTML += html;
-        scrollToBottom();
-    } else {
-        alert('The Message Was empty!');
+    chatSocket.onclose = function (e) {
+        console.log('onclose');
+    };
+
+    document.getElementById('chat-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value;
+
+        // Get the current timestamp on the client side
+        const timestamp = new Date().toISOString();
+
+        chatSocket.send(JSON.stringify({
+            'message': message,
+            'username': userName,
+            'room': roomName,
+            'timestamp': timestamp
+        }));
+
+        messageInputDom.value = '';
+        return false;
+    });
+
+    document.querySelector('#chat-messages').addEventListener('click', function (e) {
+        if (e.target.classList.contains('delete-button')) {
+            const messageId = e.target.dataset.messageId;
+            chatSocket.send(JSON.stringify({
+                'delete': {
+                    'message_id': messageId,
+                },
+            }));
+        }
+    });
+
+    function scrollToBottom() {
+        const objDiv = document.querySelector('#chat-messages');
+        objDiv.scrollTop = objDiv.scrollHeight;
     }
-}
 
-chatSocket.onclose = function(e) {
-    console.log('onclose');
-}
-
-document.querySelector('#chat-message-submit').onclick = function(e) {
-    e.preventDefault();
-    const messageInputDom = document.querySelector('#chat-message-input');
-    const message = messageInputDom.value;
-
-    // Get the current timestamp on the client side
-    const timestamp = new Date().toISOString();
-
-    chatSocket.send(JSON.stringify({
-        'message': message,
-        'username': userName,
-        'room': roomName,
-        'timestamp': timestamp
-    }));
-
-    messageInputDom.value = '';
-    return false;
-}
-
-function scrollToBottom() {
-    const objDiv = document.querySelector('#chat-messages');
-    objDiv.scrollTop = objDiv.scrollHeight;
-}
-scrollToBottom();
-
-
-</script>   
+    scrollToBottom();
+</script>
 {% endblock %}
