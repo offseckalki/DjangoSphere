@@ -1,11 +1,13 @@
 # consumers.py
 
 import json
+import base64
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from django.contrib.auth.models import User
 from .models import Message, Room
 from datetime import datetime
+from django.core.files.base import ContentFile
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -37,9 +39,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         username = data['username']
         room = data['room']
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-        deletable = data.get('deletable', True)  # Default to True if not provided
+        deletable = data.get('deletable', True)
+        file_data = data.get('file_data')
 
-        await self.save_message(username, room, message, timestamp, deletable)
+        # Save file
+        file_content = file_data.get('content', '')
+        file_name = file_data.get('name', '')
+        if file_content and file_name:
+            file = ContentFile(base64.b64decode(file_content), name=file_name)
+        else:
+            file = None
+
+        await self.save_message(username, room, message, timestamp, deletable, file)
 
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -50,6 +61,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'room': room,
                 'timestamp': timestamp,
                 'deletable': deletable,
+                'file_data': file_data,
             }
         )
 
@@ -72,6 +84,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'room': event['room'],
             'timestamp': event['timestamp'],
             'deletable': event['deletable'],
+            'file_data': event.get('file_data'),
         }))
 
     async def chat_message_deleted(self, event):
@@ -81,7 +94,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     @sync_to_async
-    def save_message(self, username, room, message, timestamp, deletable):
+    def save_message(self, username, room, message, timestamp, deletable, file):
         user = User.objects.get(username=username)
         room = Room.objects.get(slug=room)
 
@@ -89,7 +102,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if not timestamp:
             timestamp = datetime.now()
 
-        return Message.objects.create(user=user, room=room, content=message, timestamp=timestamp, deletable=deletable)
+        return Message.objects.create(user=user, room=room, content=message, timestamp=timestamp, deletable=deletable, file=file)
 
     @sync_to_async
     def delete_message(self, message_id):

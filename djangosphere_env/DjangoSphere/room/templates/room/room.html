@@ -13,7 +13,11 @@
             <div class="p-4 bg-zinc-400 rounded-xl" data-message-id="{{ message.id }}">
                 <p class="font-semibold">{{ message.user.username }} - {{ message.timestamp }}</p>
                 <p>{{ message.content }}</p>
-                
+
+                {% if message.file %}
+                    <a href="{{ message.file.url }}" download="{{ message.file.name }}">Download File</a>
+                {% endif %}
+
                 {% if message.user == request.user %}
                     <button class="px-1 py-1 rounded-xl delete-button bg-red-400 font-semibold text-black hover:bg-red-600 hover:text-white" data-message-id="{{ message.id }}">Delete</button>
                 {% endif %}
@@ -26,6 +30,7 @@
     <form id="chat-form" class="flex">
         {% csrf_token %}
         <input type="text" name="content" class="flex-1 mr-3" placeholder="Message..." id="chat-message-input">
+        <input type="file" name="file" id="file-input">
         <button class="px-5 py-3 rounded-xl text-white bg-purple-500 hover:bg-green-500" id="chat-message-submit">Submit</button>
     </form>
 </div>
@@ -40,6 +45,18 @@
     const userName = JSON.parse(document.getElementById('json-username').textContent);
     const chatSocket = new WebSocket('ws://' + window.location.host + '/ws/' + roomName + '/');
 
+    chatSocket.onopen = function (e) {
+        console.log('WebSocket connection opened:', e);
+    };
+
+    chatSocket.onerror = function (e) {
+        console.error('WebSocket error:', e);
+    };
+
+    chatSocket.onclose = function (e) {
+        console.log('WebSocket connection closed:', e);
+    };
+
     chatSocket.onmessage = function (e) {
         const data = JSON.parse(e.data);
 
@@ -49,6 +66,11 @@
             let html = `<div class="p-4 bg-zinc-400 rounded-xl" data-message-id="${data.message_id}">`;
             html += `<p class="font-semibold">${data.username} - ${localTimestamp}</p>`;
             html += `<p>${data.message}</p>`;
+
+            {% if data.file_data %}
+                const fileData = data.file_data;
+                html += `<a href="${fileData.url}" download="${fileData.name}">Download File</a>`;
+            {% endif %}
 
             {% if data.deletable and data.username == request.user.username %}
                 html += `<button class="px-1 py-1 rounded-xl delete-button bg-red-400 font-semibold text-black hover:bg-red-600 hover:text-white" data-message-id="${data.message_id}">Delete</button>`;
@@ -68,25 +90,47 @@
         }
     };
 
-    chatSocket.onclose = function (e) {
-        console.log('onclose');
-    };
-
     document.getElementById('chat-form').addEventListener('submit', function (e) {
         e.preventDefault();
         const messageInputDom = document.querySelector('#chat-message-input');
+        const fileInput = document.querySelector('#file-input');
         const message = messageInputDom.value;
+        const file = fileInput.files[0];
 
         const timestamp = new Date().toISOString();
 
-        chatSocket.send(JSON.stringify({
-            'message': message,
-            'username': userName,
-            'room': roomName,
-            'timestamp': timestamp
-        }));
+        // Read the file content as base64
+        const reader = new FileReader();
+        reader.onloadend = function () {
+            const fileContent = reader.result.split(',')[1];
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'username': userName,
+                'room': roomName,
+                'timestamp': timestamp,
+                'file_data': {
+                    'content': fileContent,
+                    'name': file.name,
+                },
+            }));
+        };
+        if (file) {
+            reader.readAsDataURL(file);
+        } else {
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'username': userName,
+                'room': roomName,
+                'timestamp': timestamp,
+                'file_data': {
+                    'content': null,
+                    'name': null,
+                },
+            }));
+        }
 
         messageInputDom.value = '';
+        fileInput.value = '';
         return false;
     });
 

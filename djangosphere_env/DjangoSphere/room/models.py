@@ -12,6 +12,7 @@ class Message(models.Model):
     date_added = models.DateTimeField(auto_now_add=True)
     timestamp = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     deletable = models.BooleanField(default=False)
-
+    file = models.FileField(upload_to='uploads/', null=True, blank=True)
+    
     class Meta:
         ordering = ('date_added',)
