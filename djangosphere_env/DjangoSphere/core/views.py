@@ -47,19 +47,23 @@ def profile(request):
         user_profile = UserProfile.objects.create(user=request.user)
 
     if request.method == 'POST':
-        user_form = UserDetailsForm(request.POST, instance=request.user)
+        user_details_form = UserDetailsForm(request.POST, instance=request.user)
         profile_picture_form = ProfilePictureForm(request.POST, request.FILES, instance=user_profile)
 
-        if user_form.is_valid() and profile_picture_form.is_valid():
-            user_form.save()
+        if user_details_form.is_valid() and profile_picture_form.is_valid():
+            user_details_form.save()
             profile_picture_form.save()
             messages.success(request, 'Profile details updated successfully.')
 
     else:
-        user_form = UserDetailsForm(instance=request.user)
+        user_details_form = UserDetailsForm(instance=request.user)
         profile_picture_form = ProfilePictureForm(instance=user_profile)
 
-    return render(request, 'core/profile.html', {'user_form': user_form, 'profile_picture_form': profile_picture_form})
+    return render(
+        request,
+        'core/profile.html',
+        {'user_details_form': user_details_form, 'profile_picture_form': profile_picture_form}
+    )
 
 @login_required
 def change_password(request):
