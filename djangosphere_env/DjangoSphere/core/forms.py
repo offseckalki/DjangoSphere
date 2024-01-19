@@ -3,6 +3,9 @@ from django.contrib.auth.models import User
 from django import forms
 from .models import UserProfile
 
+class UserSearchForm(forms.Form):
+    username_query = forms.CharField(max_length=100)
+
 class UserDetailsForm(UserChangeForm):
     class Meta:
         model = User

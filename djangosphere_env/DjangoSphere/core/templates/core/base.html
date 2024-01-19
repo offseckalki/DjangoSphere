@@ -18,13 +18,13 @@
             top: 0;
             left: 0;
             width: 100%;
-            background-color: #4c51bf; /* Adjust the background color as needed */
+            background-color: #4c51bf;
             padding: 1rem;
-            z-index: 1000; /* Adjust the z-index as needed */
+            z-index: 1000;
         }
 
         .content-container {
-            margin-top: 70px; /* Adjust the margin based on your header height */
+            margin-top: 70px;
             padding: 20px;
         }
 
@@ -33,7 +33,27 @@
             overflow-y: auto;
         }
 
-        /* Add more styles as needed */
+        .search-bar {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+
+        .search-button {
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -44,7 +64,7 @@
         </div>
         <div class="flex items-center space-x-4">
             {% if request.user.is_authenticated %}
-                <span class="text-white">Welcome,</span>
+                <span class="text-white">Welcome, {{ request.user.username }}!</span>
                 <a href="/profile/" class="text-white font-semibold">
                     {% if request.user.userprofile.profile_picture %}
                         <img src="{{ request.user.userprofile.profile_picture.url }}" alt="{{ request.user.username }}" class="h-8 w-8 rounded-full">
@@ -57,11 +77,14 @@
                 <a href="/rooms" class="text-white hover:text-purple-200">Rooms</a>
                 <form method="post" action="{% url 'logout' %}" class="inline">
                     {% csrf_token %}
-                    <button type="submit" class="text-white hover:text-purple-200">Log out</button>
+                    <button type="submit" class="text-white hover:text-purple-200">Logout</button>
                 </form>
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="Search users...">
+                    <button class="search-button">Search</button>
+                </div>
             {% else %}
-                <a href="/login/" class="text-white hover:text-purple-200">Log in</a>
-                <a href="/signup/" class="px-5 py-3 rounded-xl text-white bg-purple-600 hover:text-purple-900 hover:bg-purple-400">Sign up</a>
+                <!-- Your existing non-authenticated user content here -->
             {% endif %}
         </div>
     </nav>  

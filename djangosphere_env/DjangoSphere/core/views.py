@@ -1,3 +1,4 @@
+# profiles/views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -6,7 +7,26 @@ from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth.models import User
 from .forms import SignUpForm, ProfilePictureForm, UserDetailsForm
 from .models import UserProfile
+# views.py
+from django.shortcuts import render
+from .models import UserProfile
+from .forms import UserSearchForm
 
+def search_users(request):
+    form = UserSearchForm(request.GET)
+    results = []
+
+    if form.is_valid():
+        username_query = form.cleaned_data['username_query']
+        results = UserProfile.objects.filter(username__icontains=username_query)
+
+    return render(request, 'search_results.html', {'form': form, 'results': results})
+
+
+
+def user_profile(request):
+    # Your view logic here
+    return render(request, 'profiles/user_profile.html')
 
 def frontpage(request):
     return render(request, 'core/frontpage.html')
@@ -81,3 +101,14 @@ def change_password(request):
         form = PasswordChangeForm(request.user)
 
     return render(request, 'core/change_password.html', {'form': form})
+
+@login_required
+def search_users(request):
+    query = request.GET.get('query')
+    if query:
+        # Perform case-insensitive search on username and full name
+        users = User.objects.filter(username__icontains=query) | User.objects.filter(first_name__icontains=query) | User.objects.filter(last_name__icontains=query)
+    else:
+        users = User.objects.none()
+
+    return render(request, 'profiles/search_results.html', {'query': query, 'users': users})

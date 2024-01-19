@@ -1,0 +1,16 @@
+<!-- search_results.html -->
+<h1>Search Results</h1>
+<form method="get" action="{% url 'search_users' %}">
+    {{ form.as_p }}
+    <button type="submit">Search</button>
+</form>
+
+{% if results %}
+    <ul>
+        {% for user_profile in results %}
+            <li>{{ user_profile.username }} - {{ user_profile.first_name }} {{ user_profile.last_name }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No results found.</p>
+{% endif %}
