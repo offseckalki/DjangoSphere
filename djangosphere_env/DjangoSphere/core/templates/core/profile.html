@@ -1,0 +1,61 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+  <div class="container mx-auto p-4">
+    <h2 class="text-3xl font-bold mb-4">Your Profile</h2>
+
+    <!-- Display existing profile picture -->
+    {% if request.user.userprofile.profile_picture %}
+      <img src="{{ request.user.userprofile.profile_picture.url }}" alt="Profile Picture" class="mb-4 rounded-full">
+    {% else %}
+      <p>No profile picture available</p>
+    {% endif %}
+
+    <!-- Profile picture form -->
+    <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data" class="mb-8">
+      {% csrf_token %}
+      {{ profile_picture_form.as_p }}
+      
+      <!-- Custom-styled file input -->
+      <label for="id_profile_picture" class="cursor-pointer bg-purple-600 hover:bg-purple-400 px-4 py-2 rounded-md text-white transition duration-300 ease-in-out">
+        <span>Choose File</span>
+        <input type="file" name="profile_picture" id="id_profile_picture" class="hidden" />
+      </label>
+
+      <button type="submit" class="animate-bounce px-5 py-2 rounded-xl text-white bg-purple-600 hover:bg-purple-400 transform transition-transform duration-300">Update Profile Picture</button>
+    </form>
+
+    <h2 class="text-3xl font-bold mb-4">Update Personal Information</h2>
+    <form method="post" action="{% url 'profile' %}" class="mb-8">
+      {% csrf_token %}
+      {{ user_details_form.as_p }}
+      
+      <!-- Additional fields for first name, last name, and email -->
+      <div class="mb-4">
+        <label for="id_first_name">First Name:</label>
+        <input type="text" name="first_name" id="id_first_name" value="{{ request.user.first_name }}" class="border rounded p-2">
+      </div>
+      
+      <div class="mb-4">
+        <label for="id_last_name">Last Name:</label>
+        <input type="text" name="last_name" id="id_last_name" value="{{ request.user.last_name }}" class="border rounded p-2">
+      </div>
+      
+      <div class="mb-4">
+        <label for="id_email">Email:</label>
+        <input type="email" name="email" id="id_email" value="{{ request.user.email }}" class="border rounded p-2">
+      </div>
+
+      <button type="submit" class="px-6 py-3 rounded-xl text-white bg-purple-600 hover:bg-purple-400">Update Profile</button>
+    </form>
+
+    <h2 class="text-3xl font-bold mb-4">Change Password</h2>
+    <form method="post" action="{% url 'change_password' %}" class="mb-8">
+      {% csrf_token %}
+      {{ password_change_form.as_p }}
+      <button type="submit" class="px-6 py-3 rounded-xl text-white bg-purple-600 hover:bg-purple-400">Change Password</button>
+    </form>
+  </div>
+{% endblock %}
