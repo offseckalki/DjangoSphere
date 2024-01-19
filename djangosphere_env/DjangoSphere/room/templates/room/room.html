@@ -10,25 +10,24 @@
 <div class="lg:w-2/4 mx-4 lg:mx-auto p-4 bg-fuchsia-700 rounded-xl">
     <div class="chat-messages space-y-3" id="chat-messages">
         {% for message in messages %}
-        <div class="p-4 bg-zinc-400 rounded-xl" data-message-id="{{ message.id }}">
-            <div class="flex items-center mb-2">
-                {% if message.user.userprofile.profile_picture %}
-                    <img src="{{ message.user.userprofile.profile_picture.url }}" alt="Profile Picture" class="w-8 h-8 rounded-full mr-2">
+            <div class="p-4 bg-zinc-400 rounded-xl" data-message-id="{{ message.id }}">
+                <div class="flex items-center mb-2">
+                    {% if message.user.userprofile.profile_picture %}
+                        <img src="{{ message.user.userprofile.profile_picture.url }}" alt="Profile Picture" class="w-8 h-8 rounded-full mr-2">
+                    {% endif %}
+                    <p class="font-semibold">{{ message.user.username }} - {{ message.timestamp }}</p>
+                </div>
+                <p>{{ message.content }}</p>
+                
+                {% if message.file %}
+                    <a href="{{ message.file.url }}" download="{{ message.file.name }}" class="inline-block px-4 py-2 mt-2 bg-blue-500 text-white rounded hover:bg-blue-700">Download File</a>
                 {% endif %}
-                <p class="font-semibold">{{ message.user.username }} - {{ message.timestamp }}</p>
+        
+                {% if message.user == request.user %}
+                    <button class="px-1 py-1 rounded-xl delete-button bg-red-400 font-semibold text-black hover:bg-red-600 hover:text-white" data-message-id="{{ message.id }}">Delete</button>
+                {% endif %}
             </div>
-            <p>{{ message.content }}</p>
-            
-            {% if message.file %}
-                <a href="{{ message.file.url }}" download="{{ message.file.name }}" class="inline-block px-4 py-2 mt-2 bg-blue-500 text-white rounded hover:bg-blue-700">Download File</a>
-            {% endif %}
-    
-            {% if message.user == request.user %}
-                <button class="px-1 py-1 rounded-xl delete-button bg-red-400 font-semibold text-black hover:bg-red-600 hover:text-white" data-message-id="{{ message.id }}">Delete</button>
-            {% endif %}
-        </div>
-    {% endfor %}
-     
+        {% endfor %}
     </div>
 </div>
 
@@ -43,7 +42,6 @@
         <button class="px-5 py-3 rounded-xl text-white bg-purple-500 hover:bg-green-500" id="chat-message-submit">Submit</button>
     </form>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
@@ -82,7 +80,7 @@
                 deletedMessageElement.parentNode.removeChild(deletedMessageElement);
             }
         } else {
-            alert('Some File Recieved on Server! Please Refresh');
+            alert('Some File Received on Server! Please Refresh');
         }
     };
 
