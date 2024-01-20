@@ -1,0 +1,18 @@
+<!-- profiles/public_profile.html -->
+{% extends 'core/base.html' %}
+
+{% block content %}
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold mb-4">{{ user_profile.user.username }}'s Public Profile</h1>
+
+        <!-- Display the user's profile picture with Tailwind styling -->
+        <div class="flex items-center justify-center mb-4">
+            <img src="{{ user_profile.profile_picture.url }}" alt="Profile Picture" class="w-48 h-48 rounded-full border-4 border-white shadow-md">
+        </div>
+
+        <!-- Display the user's name -->
+        <p class="text-lg font-semibold">{{ user_profile.user.get_full_name }}</p>
+
+        <!-- Add more fields as needed -->
+    </div>
+{% endblock %}

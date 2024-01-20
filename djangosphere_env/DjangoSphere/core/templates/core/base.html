@@ -80,8 +80,10 @@
                     <button type="submit" class="text-white hover:text-purple-200">Logout</button>
                 </form>
                 <div class="search-bar">
-                    <input type="text" class="search-input" placeholder="Search users...">
-                    <button class="search-button">Search</button>
+                    <form method="get" action="{% url 'search_users' %}">
+                        <input type="text" name="username_query" class="search-input" placeholder="Search users...">
+                        <button type="submit" class="search-button">Search</button>
+                    </form>
                 </div>
             {% else %}
                 <!-- Your existing non-authenticated user content here -->

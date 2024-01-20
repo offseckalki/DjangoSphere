@@ -1,16 +1,25 @@
-<!-- search_results.html -->
-<h1>Search Results</h1>
-<form method="get" action="{% url 'search_users' %}">
-    {{ form.as_p }}
-    <button type="submit">Search</button>
-</form>
+{% extends 'core/base.html' %}
 
-{% if results %}
-    <ul>
-        {% for user_profile in results %}
-            <li>{{ user_profile.username }} - {{ user_profile.first_name }} {{ user_profile.last_name }}</li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No results found.</p>
-{% endif %}
+{% block content %}
+    <div class="container mx-auto p-8 bg-white rounded shadow-md">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Search Results</h1>
+        {% if form.cleaned_data.username_query %}
+            <p class="text-gray-600 mb-4">Results for username: {{ form.cleaned_data.username_query }}</p>
+        {% else %}
+            <p class="text-gray-600 mb-4">Results for username: None</p>
+        {% endif %}
+
+        {% if results %}
+            <ul>
+                {% for result in results %}
+                    <li class="mb-2 p-4 border rounded-lg bg-white hover:bg-gray-100 transition duration-300">
+                        <a href="{% url 'user_profile' username=result.user.username %}">{{ result.user.username }}</a>
+                        <!-- Display other relevant information -->
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-gray-600">No results found.</p>
+        {% endif %}
+    </div>
+{% endblock %}
