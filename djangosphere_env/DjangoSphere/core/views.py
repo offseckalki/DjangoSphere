@@ -1,32 +1,11 @@
-# profiles/views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.models import User
-from .forms import SignUpForm, ProfilePictureForm, UserDetailsForm
+from .forms import SignUpForm, ProfilePictureForm, UserDetailsForm, UserSearchForm
 from .models import UserProfile
-# views.py
-from django.shortcuts import render
-from .models import UserProfile
-from .forms import UserSearchForm
-
-def search_users(request):
-    form = UserSearchForm(request.GET)
-    results = []
-
-    if form.is_valid():
-        username_query = form.cleaned_data['username_query']
-        results = UserProfile.objects.filter(username__icontains=username_query)
-
-    return render(request, 'search_results.html', {'form': form, 'results': results})
-
-
-
-def user_profile(request):
-    # Your view logic here
-    return render(request, 'profiles/user_profile.html')
 
 def frontpage(request):
     return render(request, 'core/frontpage.html')
@@ -63,7 +42,6 @@ def profile(request):
     try:
         user_profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
-        # If UserProfile does not exist, create a new one for the user
         user_profile = UserProfile.objects.create(user=request.user)
 
     if request.method == 'POST':
@@ -104,11 +82,25 @@ def change_password(request):
 
 @login_required
 def search_users(request):
-    query = request.GET.get('query')
-    if query:
-        # Perform case-insensitive search on username and full name
-        users = User.objects.filter(username__icontains=query) | User.objects.filter(first_name__icontains=query) | User.objects.filter(last_name__icontains=query)
-    else:
-        users = User.objects.none()
+    form = UserSearchForm(request.GET)
+    results = []
 
-    return render(request, 'profiles/search_results.html', {'query': query, 'users': users})
+    if form.is_valid():
+        username_query = form.cleaned_data['username_query']
+        results = UserProfile.objects.filter(user__username__icontains=username_query)
+
+    return render(request, 'profiles/search_results.html', {'form': form, 'results': results})
+
+@login_required
+def user_profile(request, username):
+    try:
+        user_profile = UserProfile.objects.get(user__username=username)
+    except UserProfile.DoesNotExist:
+        # You may want to handle the case where the user profile does not exist
+        return redirect('frontpage')
+
+    return render(
+        request,
+        'profiles/user_profile.html',
+        {'user_profile': user_profile}
+    )
